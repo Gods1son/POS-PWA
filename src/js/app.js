@@ -106,4 +106,4 @@ var opened = 0;
 
   document.addEventListener("backbutton", onBackKeyDown, false);
 
-},3000)
+},1200)
