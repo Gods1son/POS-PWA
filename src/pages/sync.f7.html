@@ -1,0 +1,1033 @@
+<template>
+    <div class="page" data-name="sync">
+      <div class="navbar">
+        <div class="navbar navbar-bg"></div>
+        <div class="navbar-inner sliding">
+          <div class="left">
+            <a href="#" class="link back">
+              <i class="icon icon-back"></i>
+              <span class="if-not-md">Back</span>
+            </a>
+          </div>
+          <div class="title padding-vertical-half">Sync</div>
+          <div class="right">
+            <a href="#" class="link icon-only panel-toggle" data-panel="left">
+              <i class="icon f7-icons if-not-md">menu</i>
+              <i class="icon material-icons if-md">menu</i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    
+      <div class="page-content">
+        <div class="signParent">
+            <form id="signIn">
+                <div class="text-align-center block-title-medium margin-vertical-half">Sign In</div>
+                <div class="list no-margin-vertical">
+                    
+                  <ul>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title">Email</div>
+                        <div class="item-input-wrap signingInput">
+                          <input id="emailSign" type="email" name="email" placeholder="Enter Email">
+                          <span class="input-clear-button"></span>
+                        </div>
+                      </div>
+                    </li>
+                    <!--<li class="item-content item-input">
+                        <div class="item-inner">
+                          <div class="item-title">Username</div>
+                          <div class="item-input-wrap signingInput">
+                            <input id="usernameSign" type="email" name="email" placeholder="Enter Username">
+                            <span class="input-clear-button"></span>
+                          </div>
+                        </div>
+                      </li>-->
+                    <li class="item-content item-input">
+                      <div class="item-inner no-padding-vertical">
+                        <div class="row" style="width: 100%;">
+                            <div class="col-50 item-title">Password</div>
+                            <div class="col-50 text-align-right text-color-blue text-small" id="showPwdSignIn" @click="showPasswordSignIn()">Show Password</div>
+                          </div>
+                        <div class="item-input-wrap signingInput">
+                          <input id="passwordSign" type="password" name="password" placeholder="Password">
+                          <span class="input-clear-button"></span>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="">
+                    <a href="#" class="button button-fill button-outline button-raised margin color-green margin-vertical-half" @click="loginMethodClick()">Log In</a>
+                    <a href="#" class="button button-outline button-raised margin button-green margin-vertical-half" @click="showSignUp()">Sign Up</a>
+                </div>
+                
+              </form>
+
+              <div class="display-none syncParentClick">
+                  <a class="button button-outline button-raised margin-half button-green" @click="syncData()">Sync data online</a>
+                  <a class="button button-outline button-raised margin-half button-fill color-red" @click="logOut()">Log Out</a>
+                </div>
+
+             <!--<div class=""><a class="button button-outline button-raised margin button-green" @click="savetest()">Get User</a></div>-->
+              
+              <form id="signUp" class="display-none">
+                <div class="text-align-center block-title-medium margin-vertical-half">Sign Up</div>
+                <div class="list no-margin-vertical">
+                  <ul>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                          <div class="item-title">Email</div>
+                          <div class="item-input-wrap signingInput">
+                            <input id="email" type="email" name="email" placeholder="Email">
+                            <span class="input-clear-button"></span>
+                          </div>
+                        </div>
+                      </li>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title">Username</div>
+                        <div class="item-input-wrap signingInput">
+                          <input id="username" type="text" name="username" placeholder="Username">
+                          <span class="input-clear-button"></span>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="row" style="width: 100%;">
+                          <div class="col-50 item-title">Password</div>
+                          <div class="col-50 text-align-right text-color-blue text-small" id="showPwdSignUp" @click="showPasswordSignUp()">Show Password</div>
+                        </div>
+                        <div class="item-input-wrap signingInput">
+                          <input id="password" type="password" name="password" placeholder="Password">
+                          <span class="input-clear-button"></span>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="">
+                    <a href="#" class="button button-fill button-outline button-raised margin color-green margin-vertical-half" @click="signUpMethod()">Create Account</a>
+                    <a href="#" class="button button-outline button-raised margin button-green margin-vertical-half" @click="showSignIn()">Sign In</a>
+                </div>
+                
+              </form>
+            
+        </div>
+      </div>
+    
+     
+    
+    </div>
+    </template>
+    <script>
+    //import * as moment from 'moment';
+    var dbProducts = null, dbProdIngs = null, dbProdOthers = null, dbSales = null, dbIngs = null; 
+    var dbSettings = null, dbClients = null, dbExpenses = null, dbAccount = null, failedSync = [];
+    //import Cloudant from '@cloudant/cloudant';
+    //var Cloudant = require('@cloudant/cloudant');
+    //moment().format("X")  new Date().getTime()
+    export default {
+      test: 5,
+      data: function () {
+          // Must return an object
+          return {
+            username: null,
+            email:null,
+            password: null,
+            apiKey: "", 
+            apiPwd: "",  
+            personalApiKey: "",
+            personalApiPwd: "",
+            personalApiExpires: null,
+            cloudURL: "https://fc06d1ea-7cd0-4ba8-8be9-02ec889ef7bc-bluemix.cloudant.com/",
+            opts: { live: false, retry: false },
+            syncRetries: 0,
+            backendUrl: 'https://posbackend.herokuapp.com/',
+          }
+        },
+      methods:{
+        showSignUp: function(){
+            $("#signUp").removeClass("display-none");
+            $("#signIn").addClass("display-none");
+        },
+        showSignIn: function(){
+            $("#signIn").removeClass("display-none");
+            $("#signUp").addClass("display-none");
+        },
+        showPasswordSignIn: function(){
+          var cur = $("#passwordSign").attr("type");
+          if(cur.toLowerCase() == "password"){
+            $("#passwordSign").attr("type", "text");
+            $("#showPwdSignIn").text("Hide Password");
+          }else{
+            $("#passwordSign").attr("type", "password");
+            $("#showPwdSignIn").text("Show Password");
+          }
+        },
+        showPasswordSignUp: function(){
+          var cur = $("#password").attr("type");
+          if(cur.toLowerCase() == "password"){
+            $("#password").attr("type", "text");
+            $("#showPwdSignUp").text("Hide Password");
+          }else{
+            $("#password").attr("type", "password");
+            $("#showPwdSignUp").text("Show Password");
+          }
+         
+        },
+        signUpMethod: function(){
+            var self = this;
+           var username = $("#signUp").find("#username").val().trim();
+           var pwd = $("#signUp").find("#password").val();
+           var email = $("#signUp").find("#email").val().trim();
+           if(username == "" || pwd == "" || email == ""){
+               self.showToast("Please fill all fields", "center");
+               return;
+           }
+           if(pwd.length < 6){
+               self.showToast("Your password should be longer than 5 characters", "center");
+               return;
+           }
+           //self.$app.preloader.show();
+           var unique = email + username;
+           unique = unique.toLowerCase();
+           unique = unique.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+            self.checkUsernameUnique(unique);
+        },
+        finalRegister: function() {
+          var self = this;
+          self.$app.preloader.show();
+          var username = $("#signUp").find("#username").val().trim();
+           var pwd = $("#signUp").find("#password").val();
+           var email = $("#signUp").find("#email").val().trim();
+           var unique = email + username;
+           unique = unique.toLowerCase();
+           unique = unique.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+           var data = {};
+            data.name = username;
+            data.username = unique;
+            data.email = email;
+            data.password = pwd;
+            data.confirmPassword = pwd;
+           $.ajax({
+              url: self.backendUrl + 'auth/register',
+              headers: {
+                  //'Authorization':'Basic xxxxxxxxxxxxx',
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data){
+                self.$app.preloader.hide();
+                var key = data.token;
+                var pwd2 = data.password;
+                var exp = data.expires;
+                self.$setState({
+                  username: unique,
+                  email: email,
+                  password: pwd,
+                  personalApiKey: key,
+                  personalApiPwd: pwd2,
+                  personalApiExpires: exp
+                  }, function(){
+                      self.saveUserAccount(email, pwd, unique, key, pwd2, exp);
+                      self.showSignIn();
+                      $("#signIn").addClass("display-none");
+                      $(".syncParentClick").removeClass("display-none");
+                  })
+              },
+              error: function(err){
+                self.$app.preloader.hide();
+                self.showToast(err.responseJSON.message, "center");
+              }
+            });
+        },
+        loginMethodClick: function(){
+            var self = this;
+            var email = $("#emailSign").val().trim();
+           var pwd = $("#passwordSign").val();
+           //var username = $("#usernameSign").val().trim();
+           if(email == "" || pwd == ""){
+               self.showToast("Please fill all fields", "center");
+               return;
+           }
+           //var uname = self.username
+           self.loginMethod(email, pwd);
+           
+        },
+        deleteCurrentSession: function(sessionID, key){
+          var self = this;
+          self.$app.preloader.show();
+          var data = {};
+          data.session_id = sessionID;
+            //data.session_id = sessionID;
+            $.ajax({
+              url: self.backendUrl + "logoutSession",
+              headers: {
+                //'Authorization':'Bearer ' + self.personalApiKey + ":" + self.personalApiPwd,
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data){
+                self.$app.preloader.hide();
+                self.showToast("Old session cleared", "center");
+              },
+              error: function(err){
+                self.$app.preloader.hide();
+              }
+            });
+        },
+        refreshToken: function(email, pd, token){
+          var self = this;
+          self.$app.preloader.show();
+          var data = {};
+            data.token = token;
+            $.ajax({
+              url: self.backendUrl + 'auth/refresh', // 
+              headers: {
+                'Authorization':'Bearer ' + self.personalApiKey + ":" + self.personalApiPwd,
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data){
+                self.$app.preloader.hide();
+                var key = data.token;
+                if(key != token){
+                  self.showToast("Please log in again", "center");
+                  self.showSignIn();
+                  $("#signIn").removeClass("display-none");
+                  $(".syncParentClick").addClass("display-none");
+                  return;
+                }
+                var pwd = data.password;
+                var exp = data.expires;
+                var us = data.user_id;
+                self.$setState({
+                  username: us,
+                  email: email,
+                  password: pd,
+                  personalApiKey: key,
+                  personalApiPwd: pwd,
+                  personalApiExpires: exp
+                  }, function(){
+                      self.saveUserAccount(email, pd, us, key, pwd, exp);
+                      self.showSignIn();
+                      $("#signIn").addClass("display-none");
+                      $(".syncParentClick").removeClass("display-none");
+                      console.log(key + " " + pwd + " " + exp);
+                  })
+              },
+              error: function(err){
+                self.$app.preloader.hide();
+              }
+            });
+        },
+        loginMethod: function(email, pd){
+            var self = this;
+            self.$app.preloader.show();
+            var data = {};
+            data.username = email;
+            data.password = pd;
+            $.ajax({
+              url: self.backendUrl + 'auth/login',
+              headers: {
+                  //'Authorization':'Basic xxxxxxxxxxxxx',
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data){
+                self.$app.preloader.hide();
+                var key = data.token;
+                var pwd = data.password;
+                var exp = data.expires;
+                var us = data.user_id;
+                self.$setState({
+                  username: us,
+                  email: email,
+                  password: pd,
+                  personalApiKey: key,
+                  personalApiPwd: pwd,
+                  personalApiExpires: exp
+                  }, function(){
+                      self.saveUserAccount(email, pd, us, key, pwd, exp);
+                      self.showSignIn();
+                      $("#signIn").addClass("display-none");
+                      $(".syncParentClick").removeClass("display-none");
+                      console.log(key + " " + pwd + " " + exp);
+                  })
+              },
+              error: function(err){
+                console.log(err);
+                self.showToast(err.responseJSON.message, "center");
+                self.$app.preloader.hide();
+              }
+            });
+            
+        },
+        logOut: function(){
+            var self = this;
+            self.$app.preloader.show();
+            var data = {};
+            data.username = self.email;
+            data.password = self.pwd;
+            $.ajax({
+              url: self.backendUrl + 'auth/logout',
+              headers: {
+                  'Authorization':'Bearer ' + self.personalApiKey + ":" + self.personalApiPwd,
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data2){
+                self.$app.preloader.hide();
+                if(data2.success == "Logged out"){
+                  self.showToast("Logged Out", "center");
+                  $(".syncParentClick").addClass("display-none");
+                    $("#passwordSign").val("");
+                    self.showSignIn();
+                    dbAccount.get("myAccount").then(function(doc) {
+                    doc.signedIn = 0;
+                    doc.apiKey = "";
+                    doc.apiPwd = "";
+                    doc.apiExp = 0;
+                    doc._rev = doc._rev;
+                    doc._id = doc._id;
+                    return dbAccount.put(doc);
+                  }).catch(function(err){
+                    
+                  });
+                }
+                
+              },
+              error: function(err){
+                self.$app.preloader.hide();
+                console.log("err");
+                console.log(err);
+              }
+            })
+            
+                    
+
+        },
+        savetest: function(){
+          var self = this;
+          self.$app.preloader.show();
+          var data = {};
+          //data.username = "bobobobocombobo";
+          data.username = "bade";
+            //data.session_id = sessionID;
+            $.ajax({
+              url: self.backendUrl + "checkUsername",
+              headers: {
+                //'Authorization':'Bearer ' + self.personalApiKey + ":" + self.personalApiPwd,
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data){
+                self.$app.preloader.hide();
+                console.log("success");
+                console.log(data.responseText);
+                //self.showToast("Old session cleared", "center");
+              },
+              error: function(err){
+                self.$app.preloader.hide();
+                console.log("failed");
+                console.log(err.responseText);
+              }
+            });
+        },
+        checkUsernameUnique: function(user){
+          var self = this;
+          self.$app.preloader.show();
+          var data = {};
+          //data.username = "bobobobocombobo";
+          data.username = user;
+            //data.session_id = sessionID;
+            $.ajax({
+              url: self.backendUrl + "checkUsername",
+              headers: {
+                //'Authorization':'Bearer ' + self.personalApiKey + ":" + self.personalApiPwd,
+                  //'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+                  'Content-Type':'application/json'
+              },
+              method: 'POST',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              success: function(data){
+                self.$app.preloader.hide();
+                var res = data.responseText;
+                //console.log(res);
+                if(res != ""){
+                    self.showToast("Username: " + res, "center");
+                }else{
+                  self.finalRegister();
+                }
+              },
+              error: function(err){
+                self.$app.preloader.hide();
+                //console.log("failed");
+                //console.log(err);
+                var res = err.responseText;
+                console.log(res);
+                if(res != ""){
+                    self.showToast("Username: " + res, "center");
+                }else{
+                  self.finalRegister();
+                }
+              }
+            });
+        },
+        saveUserAccount: function(email, pd, us, apiKey, apiPwd, apiExp){
+            var self = this;
+            dbAccount.get("myAccount").then(function(doc) {
+                   doc.username = us;
+                    doc.email = email;
+                    doc.password = pd;
+                    doc.signedIn = 1;
+                    doc.apiKey = apiKey;
+                    doc.apiPwd = apiPwd;
+                    doc.apiExp = apiExp;
+                    doc._rev = doc._rev;
+                    doc._id = doc._id;
+                    return dbAccount.put(doc);
+                  }).catch(function(err){
+                    var obj = {};
+                    obj._id = "myAccount";
+                    obj.username = us;
+                    obj.password = pd;
+                    obj.email = email;
+                    obj.signedIn = 1;
+                    obj.apiKey = apiKey;
+                    obj.apiPwd = apiPwd;
+                    obj.apiExp = apiExp;
+                    dbAccount.put(obj);
+                  });
+                
+        },
+        removeFailedSync: function(db){
+          var index = failedSync.indexOf(db);
+            if (index > -1) {
+              failedSync.splice(index, 1);
+            }
+        },
+        addFailedSync: function(db){
+          var index = failedSync.indexOf(db);
+            if (index == -1) {
+              failedSync.push(db);
+            }
+        },
+        syncDBProducts: function(redirect){
+          var self = this;
+          var name = self.username;
+          self.$app.preloader.show();
+          var dbProductsR = new PouchDB(self.cloudURL + 'dbproducts$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+
+            dbProducts.sync(dbProductsR, self.opts).on('complete', function (info) {
+                  self.showToast("products synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbProducts");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBProdIngs(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbProducts");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBProdIngs(redirect); },1500);
+                  }
+                })
+        },
+        syncDBProdIngs: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbProdIngsR = new PouchDB(self.cloudURL + 'dbprodings$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbProdIngs.sync(dbProdIngsR, self.opts).on('complete', function (info) {
+                  self.showToast("products ingredients synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbProdIngs");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBProdOthers(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbProdIngs");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBProdOthers(redirect); },1500);
+                  }
+                })
+        },
+        syncDBProdOthers: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbProdOthersR = new PouchDB(self.cloudURL + 'dbprodothers$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbProdOthers.sync(dbProdOthersR, self.opts).on('complete', function (info) {
+                  self.showToast("products custom charges synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbProdOthers");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBSales(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbProdOthers");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBSales(redirect); },1500);
+                  }
+                })
+        },
+        syncDBSales: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbSalesR = new PouchDB(self.cloudURL + 'dbsales$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbSales.sync(dbSalesR, self.opts).on('complete', function (info) {
+                  self.showToast("sales synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbSales");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBIngs(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbSales");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBIngs(redirect); },1500);
+                  }
+                })
+        },
+        syncDBIngs: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbIngsR = new PouchDB(self.cloudURL + 'dbings$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbIngs.sync(dbIngsR, self.opts).on('complete', function (info) {
+                  self.showToast("ingredients synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbIngs");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBSettings(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbIngs");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBSettings(redirect); },1500);
+                  }
+                })
+        },
+        syncDBSettings: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbSettingsR = new PouchDB(self.cloudURL + 'dbsettings$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbSettings.sync(dbSettingsR, self.opts).on('complete', function (info) {
+                  self.showToast("settings synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbSettings");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBClients(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbSettings");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBClients(redirect); },1500);
+                  }
+                })
+        },
+        syncDBClients: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbClientsR = new PouchDB(self.cloudURL + 'dbclients$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbClients.sync(dbClientsR, self.opts).on('complete', function (info) {
+                  self.showToast("clients synced to server", "center");
+                  //remove from failed
+                  self.removeFailedSync("dbClients");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBExpenses(redirect); },1500);
+                  }
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbClients");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    setTimeout(function(){ self.syncDBExpenses(redirect); },1500);
+                  }
+                })
+        },
+        syncDBExpenses: function(redirect){
+          var self = this;
+          var name = self.username;
+          var dbExpensesR = new PouchDB(self.cloudURL + 'dbexpenses$' + name, { //dbclients$bababosscombaba
+                    auth: {
+                        username:  self.personalApiKey,
+                        password:  self.personalApiPwd  
+                    },
+                    skipSetup: true
+            });
+            self.$app.preloader.show();
+            dbExpenses.sync(dbExpensesR, self.opts).on('complete', function (info) {
+                  self.showToast("expenses synced to server", "center");
+                  //remove from failed
+                  self.$app.preloader.hide();
+                  self.removeFailedSync("dbExpenses");
+                  if(redirect){
+                    self.retryFailedSyncs();
+                  }
+
+                }).on('error', function (err) {
+                  // handle error
+                  self.showToast(err.error, "center");
+                  self.addFailedSync("dbExpenses");
+                  self.$app.preloader.hide();
+                  if(redirect){
+                    self.retryFailedSyncs();
+                  }
+                })
+        },
+        retryFailedSyncs: function(){
+          var self = this;
+            if(failedSync.length > 0){
+              if(self.syncRetries == 2){
+                self.showToast("Sync failed too many times", "center");
+                return;
+              }
+              var num = self.syncRetries;
+              num += 1;
+              self.$setState({
+                  syncRetries: num
+                })
+              for(var i = 0; i < failedSync.length; i++){
+                var db = failedSync[i];
+                if(db == "dbProducts"){
+                  self.syncDBProducts(false);
+                }
+                if(db == "dbProdIngs"){
+                  self.syncDBProdIngs(false);
+                }
+                if(db == "dbProdOthers"){
+                  self.syncDBProdOthers(false);
+                }
+                if(db == "dbSales"){
+                  self.syncDBSales(false);
+                }
+                if(db == "dbIngs"){
+                  self.syncDBIngs(false);
+                }
+                if(db == "dbSettings"){
+                  self.syncDBSettings(false);
+                }
+                if(db == "dbClients"){
+                  self.syncDBClients(false);
+                }
+                if(db == "dbExpenses"){
+                  self.syncDBExpenses(false);
+                }
+              }
+            }else{
+              self.showToast("Sync Completed", "center");
+            }
+        },
+        syncData: function(){
+            var self = this;
+            self.syncDBProducts(true);
+        },
+        syncData2: function(){
+            var self = this;
+            var url = 'https://' + self.personalApiKey + ":" + self.personalApiPwd +  '@fc06d1ea-7cd0-4ba8-8be9-02ec889ef7bc-bluemix.cloudant.com/';
+            var name = self.email;
+            var prefix = name.toLowerCase();
+            name = prefix.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+            var options =  {
+              live: true,
+              retry: true
+            }
+            var urlFull = url + "dbproducts$" + name;
+            var remoteOptions = {
+                fetch: function (url, opts) {
+                    //opts.headers.set("Authorization", "Bearer " + token);
+                    return PouchDB.fetch(url, opts);
+                }
+            };
+            var syncOptions = {
+                live: true,
+                retry: true,
+                continuous: true,
+            };
+            //localDb = new PouchDB(localName);
+            var remoteDb = new PouchDB(urlFull, remoteOptions);
+            remoteDb.allDocs({
+            include_docs: true,
+            attachments: true
+            }).then(function (result) {
+            }).catch(function (err) {
+            });
+
+        },
+        showToast: function(text, position){
+            var self = this;
+            self.$app.toast.create({
+                            text: text,
+                            position: position,
+                            closeTimeout: 2000,
+                            }).open();
+        },
+        getData: function(){
+            var self = this;
+            dbAccount.get("myAccount").then(function(doc) {
+                   var now = new Date().getTime();
+                   var expired = now > doc.apiExp;
+                   if(doc.signedIn ==1 && expired){
+                    console.log(doc.email + " " + doc.password + " " + doc.apiKey);
+                    //self.refreshToken(doc.email, doc.password, doc.apiKey);
+                    self.showSignIn();
+                    $("#signIn").removeClass("display-none");
+                    $("#signUp").addClass("display-none");
+                    $("#emailSign").val(doc.email);
+                    $("#passwordSign").val(doc.password);
+                    $(".syncParentClick").addClass("display-none");
+                    self.deleteCurrentSession(doc.apiKey, doc.email);
+                    return;
+                   }
+                   if(doc.signedIn == undefined || doc.signedIn == 0){
+                    self.showSignIn();
+                    $("#signIn").removeClass("display-none");
+                    $("#signUp").addClass("display-none");
+                    $(".syncParentClick").addClass("display-none");
+                    return;
+                   }
+                   self.showSignIn();
+                   //self.$app.preloader.show();
+                    $("#signIn").addClass("display-none");
+                    $(".syncParentClick").removeClass("display-none");
+                    self.$setState({
+                      username:doc.username,
+                      email:doc.email,
+                      password: doc.password,
+                      personalApiKey: doc.apiKey,
+                      personalApiPwd: doc.apiPwd,
+                      personalApiExpires: doc.apiExp
+                    })
+                  }).catch(function(err){
+                    self.showSignUp();
+                    $("#signIn").addClass("display-none");
+                    $("#signUp").removeClass("display-none");
+                    $(".syncParentClick").addClass("display-none");
+                  });
+        },
+        startPouch: function(){
+          var self = this;
+          /*products: "++id,name,cost,status,created_date",
+            product_ingredient: "++id,productID,ingredientID,unit_size,cost,status,created_date",
+            product_otherMaterials: "++id,productID,name,cost,status,created_date",*/
+            //sales: "++id,parentID,product_name,isParent,buyer_name,cost,quantity,tax,total_price,afterTax,amountPaid,isPaid,date_paid,created_date,status",
+          try{//id,name,unit_size,unit,cost_per_unit,status,created_date
+            if(pdf != undefined){
+                dbProducts = new PouchDB('products.db', { adapter: 'cordova-sqlite' });
+                dbExpenses = new PouchDB('expenses.db', { adapter: 'cordova-sqlite' });
+                dbProdIngs = new PouchDB('product_ingredients.db', { adapter: 'cordova-sqlite' });
+                dbProdOthers = new PouchDB('product_otherMaterials.db', { adapter: 'cordova-sqlite' });
+                dbSales = new PouchDB('sales.db', { adapter: 'cordova-sqlite' });
+                dbIngs = new PouchDB('ingredients.db', { adapter: 'cordova-sqlite' });
+                dbSettings = new PouchDB('settings.db', { adapter: 'cordova-sqlite' });
+                dbClients = new PouchDB('clients.db', { adapter: 'cordova-sqlite' });
+                dbAccount = new PouchDB('dbAccount.db', { adapter: 'cordova-sqlite' });
+                dbExpenses.createIndex({
+                  index: {
+                    fields: ['created_date', 'name', 'status']
+                  }
+                })
+                dbClients.createIndex({
+                  index: {
+                    fields: ['name', 'created_date']
+                  }
+                })
+                dbIngs.createIndex({
+                  index: {
+                    fields: ['name', 'status']
+                  }
+                })
+                dbProdIngs.createIndex({
+                  index: {
+                    fields: ['productID', 'ingredientID', 'status']
+                  }
+                })
+                dbProdOthers.createIndex({
+                  index: {
+                    fields: ['productID', 'name', 'status']
+                  }
+                })
+                
+                dbProducts.createIndex({
+                  index: {
+                    fields: ['name', 'status']
+                  }
+                })
+                dbSales.createIndex({
+                  index: {
+                    fields: ['created_date','parentID', 'product_name', 'isParent', 'buyer_name', 'status']
+                  }
+                })
+                dbAccount.createIndex({
+                  index: {
+                    fields: ['username', 'email']
+                  }
+                }).then(function (result) {
+                  self.getData();
+                })
+              }
+          }catch(err){
+                dbProducts = new PouchDB('products.db');
+                dbProdIngs = new PouchDB('product_ingredients.db');
+                dbProdOthers = new PouchDB('product_otherMaterials.db');
+                dbExpenses = new PouchDB('expenses.db');
+                dbSales = new PouchDB('sales.db');
+                dbIngs = new PouchDB('ingredients.db');
+                dbSettings = new PouchDB('settings.db');
+                dbClients = new PouchDB('clients.db');
+                dbAccount = new PouchDB('dbAccount.db');
+                dbExpenses.createIndex({
+                  index: {
+                    fields: ['created_date', 'name', 'status']
+                  }
+                })
+                dbClients.createIndex({
+                  index: {
+                    fields: ['name', 'created_date']
+                  }
+                })
+                dbIngs.createIndex({
+                  index: {
+                    fields: ['name', 'status']
+                  }
+                })
+                dbProdIngs.createIndex({
+                  index: {
+                    fields: ['productID', 'ingredientID', 'status']
+                  }
+                })
+                dbProdOthers.createIndex({
+                  index: {
+                    fields: ['productID', 'name', 'status']
+                  }
+                })
+                
+                dbProducts.createIndex({
+                  index: {
+                    fields: ['name', 'status']
+                  }
+                })
+                dbSales.createIndex({
+                  index: {
+                    fields: ['created_date','parentID', 'product_name', 'isParent', 'buyer_name', 'status']
+                  }
+                })
+                dbAccount.createIndex({
+                  index: {
+                    fields: ['username', 'email']
+                  }
+                }).then(function (result) {
+                  self.getData();
+                })
+            }
+            
+        },
+        
+    },
+      on: {
+          pageInit: function(e, page) {
+            var self = this;
+            self.startPouch();
+          },
+          pageReinit: function(e, page) {
+            
+          }
+      }
+    
+    } 
+    </script>
